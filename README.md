@@ -27,6 +27,10 @@ The script is currently not fully optimized, and for some files that are essenti
 
 脚本目前还不够完善，对于有些文件，是程序必须的，但是又在程序运行时不占用的，就需要将文件名加入白名单列表中，脚本会在处理时不移动这些文件。
 
+Currently, this script has only been tested on Win7/win11.
+
+目前本脚本仅在win7/win11上做过测试，功能正常。
+
 When the program runs for the first time, it automatically generates a 'white_files.json' file, which records the files that the tool does not move during its operation. Please add or modify this list according to your specific usage scenarios.
 
 程序第一次运行，会自动生成white_files.json文件，该文件记录了工具运行时不移动的文件，请根据使用情况酌情添加。

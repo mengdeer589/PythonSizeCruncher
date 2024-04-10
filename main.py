@@ -8,9 +8,64 @@ from tkinter import *
 from tkinter import filedialog, messagebox
 from tkinter.ttk import *
 
-from PIL import Image, ImageTk
+file_json = Path.cwd() / "white_files.json"
 
-my_pic = None
+white_dict = {"python": ["api-ms-win-core", "base_library.zip", ".tcl", "tclIndex", "MSVCP140.dll",
+                         "cacert.pem", "cp936.enc", "__init__", "python.exe", "pythonw.exe",],
+              "matplotlib": ["matplotlibrc", ".load-order"],
+              "request": ["msgcat-1.6.1.tm"],
+              "plotly": ["plotly.json", "plotly.min.js"],
+              "pyecharts": ["pyecharts"],
+              "pyqtwebengine": ["QtWebEngineProcess.exe", "icudtl.dat", "qtwebengine_devtools_resources.pak",
+                                "qtwebengine_resources", "qt.conf"],
+              "win32": ["pywin32.pth"],
+              "streamlit": ["streamlit\\static"]
+
+              }
+white_file_type = [".pyi", ".py"]
+
+
+def get_file_paths(directory: Path) -> list:
+    """获取指定路径所有文件名"""
+    file_list = []
+    files_paths = directory.glob("**/*.*")
+    for path in files_paths:
+        if path.is_file():
+            file_list.append(path)
+    return file_list
+
+
+def is_file_in_use(file_name: Path) -> bool:
+    """判断该文件是否被占用,被占用即返回True"""
+    file_name = str(file_name)
+    try:
+        # 尝试以读写模式打开文件
+        with open(file_name, "r+", encoding="utf-8") as file:
+            # 如果文件成功打开，说明没有被占用
+            return False
+    except OSError as e:
+        # 如果抛出OSError异常，说明文件被占用
+        return True
+    except Exception as e:
+        # 处理其他可能的异常
+        print(f"An error occurred: {e}")
+        return False
+
+
+def move_file_to_folder(file_old: Path, file_new: Path) -> None:
+    """使用Path.rename方法移动文件"""
+    if not file_new.parent.exists():
+        try:
+            os.makedirs(file_new.parent)
+        except PermissionError as pe:
+            messagebox.showerror("权限错误", f"无法创建目录：{pe}")
+            return
+    try:
+        file_old.rename(file_new)
+    except PermissionError as pe:
+        pass
+    except Exception as e:
+        messagebox.showerror("未知错误", f"移动文件时发生错误：{e}")
 
 
 class WinGUI(Tk):
@@ -23,12 +78,13 @@ class WinGUI(Tk):
         self.tk_button_start = self.__tk_button_start(self)
         self.tk_input_file = self.__tk_input_file(self)
         self.tk_button_infor = self.__tk_button_infor(self)
+        self.tk_progressbar_progress = self.__tk_progressbar_progress(self)
 
     def __win(self):
         """创建窗口"""
         self.title("打包瘦身小工具")
         width = 335
-        height = 90
+        height = 140
         screenwidth = self.winfo_screenwidth()
         screenheight = self.winfo_screenheight()
         geometry = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
@@ -64,66 +120,11 @@ class WinGUI(Tk):
         btn.place(x=240, y=55, width=80, height=30)
         return btn
 
-
-file_json = Path.cwd() / "white_files.json"
-
-white_dict = {"python": ["api-ms-win-core", "base_library.zip", ".tcl", "tclIndex", "MSVCP140.dll",
-                         "cacert.pem", "cp936.enc", "__init__", ],
-              "matplotlib": ["matplotlibrc", ".load-order"],
-              "request": ["msgcat-1.6.1.tm"],
-              "plotly": ["plotly.json", "plotly.min.js"],
-              "pyecharts": ["pyecharts"],
-              "pyqtwebengine": ["QtWebEngineProcess.exe", "icudtl.dat", "qtwebengine_devtools_resources.pak",
-                                "qtwebengine_resources", "qt.conf"],
-              "win32": ["pywin32.pth"],
-
-              }
-white_file_type = [".pyi", ".py"]
-
-
-def open_img(img):
-    """将图标设置为全局变量"""
-    global my_pic
-    img = Image.open(img)
-    my_pic = ImageTk.PhotoImage(img)
-    return my_pic
-
-
-def get_file_paths(directory):
-    """获取指定路径所有文件名"""
-    file_list = []
-    files_paths = directory.glob("**/*.*")
-    for path in files_paths:
-        if path.is_file():
-            file_list.append(path)
-    return file_list
-
-
-def is_file_in_use(file_name: Path) -> bool:
-    """判断该文件是否被占用,被占用即返回True"""
-    file_name = str(file_name)
-    try:
-        # 尝试以读写模式打开文件
-        with open(file_name, "r+", encoding="utf-8") as file:
-            # 如果文件成功打开，说明没有被占用
-            return False
-    except OSError as e:
-        # 如果抛出OSError异常，说明文件被占用
-        return True
-    except Exception as e:
-        # 处理其他可能的异常
-        print(f"An error occurred: {e}")
-        return False
-
-
-def move_file_to_folder(file_old, file_new):
-    """使用Path.rename方法移动文件"""
-    if not file_new.parent.exists():
-        os.makedirs(file_new.parent)
-    try:
-        file_old.rename(file_new)
-    except PermissionError:
-        pass
+    @staticmethod
+    def __tk_progressbar_progress(parent):
+        progressbar = Progressbar(parent, orient=HORIZONTAL)
+        progressbar.place(x=5, y=100, width=320, height=30)
+        return progressbar
 
 
 class MasterGui(WinGUI):
@@ -132,21 +133,23 @@ class MasterGui(WinGUI):
     def __init__(self):
         super().__init__()
         try:
-            icon_program = open_img(str(Path.cwd().joinpath("file.png")))
-            self.wm_iconphoto(False, icon_program)
+            self.wm_iconbitmap("file.ico")
         except FileNotFoundError:
             pass
+        self.progress_var = DoubleVar()
         self.tk_button_file.config(command=self.select_file)
         self.tk_button_start.config(command=self.start_work)
         self.tk_button_infor.config(command=self.sys_info)
+        self.tk_progressbar_progress.config(variable=self.progress_var, length=100, )
         self.file_name = ""
         self.white_dict = None
         self.white_list = []
+
         self.ini_window()
         self.protocol("WM_DELETE_WINDOW", self.close_window)
         self.mainloop()
 
-    def ini_window(self):
+    def ini_window(self) -> None:
         """程序初始化"""
         if Path(file_json).exists():
             print("读取白名单配置文件", f"{file_json}")
@@ -174,7 +177,7 @@ class MasterGui(WinGUI):
             messagebox.showinfo(title="保存", message=f"已写入默认白名单配置文件{file_json}")
         sys.exit()
 
-    def select_file(self):
+    def select_file(self) -> None:
         """选择目标文件夹"""
         selected_path = filedialog.askdirectory()
         if selected_path == "":
@@ -215,13 +218,16 @@ class MasterGui(WinGUI):
         file_list = get_file_paths(self.file_name)
         file_move_list = []
         rst_txt = Path(file_dir_old).parent.joinpath(f"{self.file_name.name}_文件移动清单.txt")
-        for filename in file_list:
+        self.tk_progressbar_progress.config(value=0)
+        for idx, filename in enumerate(file_list):
             if self.check_file(filename):  # 检查白名单
                 if not is_file_in_use(filename):
                     relative_path = filename.relative_to(self.file_name)
                     filename_new = file_dir_new.joinpath(relative_path)
                     move_file_to_folder(filename, filename_new)
                     file_move_list.append(str(filename))
+            self.progress_var.set(idx / len(file_list) * 100)
+            self.update()
         if rst_txt.exists():
             os.remove(str(rst_txt))
         with open(rst_txt, "w", encoding="utf-8") as file:
@@ -230,7 +236,7 @@ class MasterGui(WinGUI):
         messagebox.showinfo("提示", "文件移动结束！")
 
     @staticmethod
-    def sys_info():
+    def sys_info() -> None:
         """工具说明"""
         message = ("运行原理：\n"
                    "本工具仅在win7/win11测试通过。"

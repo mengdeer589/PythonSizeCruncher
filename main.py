@@ -14,12 +14,13 @@ white_dict = {"python": ["api-ms-win-core", "base_library.zip", ".tcl", "tclInde
                          "cacert.pem", "cp936.enc", "__init__", "python.exe", "pythonw.exe",],
               "matplotlib": ["matplotlibrc", ".load-order"],
               "request": ["msgcat-1.6.1.tm"],
-              "plotly": ["plotly.json", "plotly.min.js"],
+              "plotly": ["plotly.json", "plotly.min.js","package_data\\templates"],
               "pyecharts": ["pyecharts"],
               "pyqtwebengine": ["QtWebEngineProcess.exe", "icudtl.dat", "qtwebengine_devtools_resources.pak",
                                 "qtwebengine_resources", "qt.conf"],
               "win32": ["pywin32.pth"],
-              "streamlit": ["streamlit\\static"]
+              "streamlit": ["streamlit\\static"],
+              "trame_vtk": ["static_viewer.html"]
 
               }
 white_file_type = [".pyi", ".py"]

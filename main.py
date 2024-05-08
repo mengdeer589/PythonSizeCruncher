@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """本脚本用于打包后的程序瘦身"""
+import _tkinter
 import json
 import os
 import sys
@@ -102,6 +103,8 @@ class MasterGui(WinGUI):
         try:
             self.wm_iconbitmap("file.ico")
         except FileNotFoundError:
+            pass
+        except _tkinter.TclError:
             pass
         self.progress_var = DoubleVar()
         self.tk_button_file.config(command=self.select_file)

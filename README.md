@@ -35,3 +35,5 @@ Currently, this script has only been tested on Win7/win11.
 When the program runs for the first time, it automatically generates a 'white_files.json' file, which records the files that the tool does not move during its operation. Please add or modify this list according to your specific usage scenarios.
 
 程序第一次运行，会自动生成white_files.json文件，该文件记录了工具运行时不移动的文件，请根据使用情况酌情添加。
+# 视频演示
+[b站视频-python程序打包瘦身](https://www.bilibili.com/video/BV16r421E7zU/)

@@ -38,6 +38,7 @@ class WinGUI(Tk):
         self.tk_button_start = self.__tk_button_start(self)
         self.tk_input_file = self.__tk_input_file(self)
         self.tk_button_infor = self.__tk_button_infor(self)
+        self.tk_check_button_safe = self.__tk_check_button_safe(self)
         self.tk_label_progressbar = self.__tk_label_progressbar(self)
         self.tk_progressbar_progress = self.__tk_progressbar_progress(self)
 
@@ -82,6 +83,12 @@ class WinGUI(Tk):
         return btn
 
     @staticmethod
+    def __tk_check_button_safe(parent):
+        cb = Checkbutton(parent, text="当前：安全模式", )
+        cb.place(x=180, y=100, width=120, height=30)
+        return cb
+
+    @staticmethod
     def __tk_label_progressbar(parent):
         label = Label(parent, text="处理进度", anchor="center")
         label.place(x=5, y=55, width=100, height=30)
@@ -106,10 +113,14 @@ class MasterGui(WinGUI):
             pass
         except _tkinter.TclError:
             pass
+        self.safe_var = BooleanVar()
         self.progress_var = DoubleVar()
         self.tk_button_file.config(command=self.select_file)
         self.tk_button_start.config(command=self.start_work)
         self.tk_button_infor.config(command=self.sys_info)
+        self.tk_check_button_safe.config(variable=self.safe_var)
+        self.safe_var.set(True)
+        self.safe_var.trace_add("write", self.mode_change)
         self.tk_progressbar_progress.config(variable=self.progress_var, length=100, )
         self.file_name = ""
         self.white_dict = None
@@ -172,7 +183,8 @@ class MasterGui(WinGUI):
     def work_thread_func(self, white_list, file_path):
         """文件移动多线程"""
         file_dir_new = Path(str(file_path) + "_new")
-        file_list = FileRemove.get_file_paths(file_path)
+        only_binary = self.safe_var.get()
+        file_list = FileRemove.get_file_paths(file_path, only_binary)
         file_move_list = []
         rst_txt = Path(file_path).parent.joinpath(f"{file_path.name}_文件移动清单.txt")
         file_count = len(file_list)
@@ -214,6 +226,13 @@ class MasterGui(WinGUI):
                                             daemon=True)
         self.tk_button_start.config(state=DISABLED)
         file_move_thread.start()
+    def mode_change(self,*args):
+        value=self.safe_var.get()
+        if value:
+            self.tk_check_button_safe.config(text="当前：安全模式")
+        else:
+            self.tk_check_button_safe.config(text="当前：极限模式")
+
 
     @staticmethod
     def sys_info() -> None:
@@ -225,6 +244,8 @@ class MasterGui(WinGUI):
                    "3，移动结束后，请再运行一遍自己的程序，如果提示文件缺少，可以从《文件移动清单.txt》去找，还原即可。\n\n"
                    "瘦身效果：\n根据我的历史使用记录，本工具针对pyinstaller打包的程序能缩小体积50%左右，针对nuitka打包的程序能缩小体积30%左右。\n"
                    "注意事项：工具目前还不够完善，对于有些文件，是程序必须的，但是又在程序运行时不占用的，就需要将文件名加入白名单列表中。\n\n"
+                   "安全模式为程序只针对pyd,dll文件进行操作，瘦身成功率较高；\n"
+                   "极限模式为程序针对所有类型文件进行操作，瘦身效果较好，默认使用安全模式。\n\n"
                    "程序第一次运行，会自动生成white_files.json文件，该文件记录了工具运行时不移动的文件，请根据使用情况酌情添加。")
         messagebox.showinfo(title="使用说明", message=message)
 
@@ -233,10 +254,13 @@ class FileRemove:
     """文件移动函数类"""
 
     @staticmethod
-    def get_file_paths(directory: Path) -> list:
-        """获取指定路径所有文件名"""
+    def get_file_paths(directory: Path, only_binary: bool = True) -> list:
+        """获取指定路径所有文件名,only_binary设置是否只检测pyd,dll文件"""
         file_list = []
-        files_paths = directory.glob("**/*.*")
+        if only_binary:
+            files_paths = [path for pattern in ('*.pyd', '*.dll') for path in directory.glob('**/' + pattern)]
+        else:
+            files_paths = directory.glob("**/*.*")
         for path in files_paths:
             if path.is_file():
                 file_list.append(path)

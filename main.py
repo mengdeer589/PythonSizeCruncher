@@ -10,7 +10,7 @@ from tkinter import *
 from tkinter import filedialog, messagebox
 from tkinter.ttk import *
 
-file_json = Path.cwd() / "white_files.json"
+file_json = Path(__file__).parent.joinpath("white_files.json")
 
 white_dict = {"python": ["api-ms-win-core", "base_library.zip", ".tcl", "tclIndex", "MSVCP140.dll",
                          "cacert.pem", "cp936.enc", "__init__", "python.exe", "pythonw.exe", "VCRUNTIME140_1.dll"],
@@ -107,8 +107,9 @@ class MasterGui(WinGUI):
 
     def __init__(self):
         super().__init__()
+        icon = Path(__file__).parent.joinpath("file.ico")
         try:
-            self.wm_iconbitmap("file.ico")
+            self.wm_iconbitmap(icon)
         except FileNotFoundError:
             pass
         except _tkinter.TclError:
@@ -227,13 +228,13 @@ class MasterGui(WinGUI):
                                             daemon=True)
         self.tk_button_start.config(state=DISABLED)
         file_move_thread.start()
-    def mode_change(self,*args):
-        value=self.safe_var.get()
+
+    def mode_change(self, *args):
+        value = self.safe_var.get()
         if value:
             self.tk_check_button_safe.config(text="当前：安全模式")
         else:
             self.tk_check_button_safe.config(text="当前：极限模式")
-
 
     @staticmethod
     def sys_info() -> None:
@@ -308,6 +309,10 @@ class FileRemove:
             if Path(file).suffix == file_type:
                 return False
         return True
+
+
+def start():
+    win = MasterGui()
 
 
 if __name__ == "__main__":

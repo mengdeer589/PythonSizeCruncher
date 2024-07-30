@@ -42,7 +42,7 @@ WHITE_DICT = {
     "streamlit": ["streamlit\\static"],
     "trame_vtk": ["static_viewer.html"],
 }
-WHITE_FILE_TYPE = [".pyi", ".py", ".pth", "._pth"]
+WHITE_FILE_TYPE = [".pyi", ".py",".pyc", ".pth", "._pth"]
 
 
 class WinGUI(Tk):

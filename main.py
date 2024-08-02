@@ -28,7 +28,7 @@ WHITE_DICT = {
         "pythonw.exe",
         "VCRUNTIME140_1.dll",
     ],
-    "matplotlib": ["matplotlibrc", ".load-order","matplotlib.svg"],
+    "matplotlib": ["matplotlibrc", ".load-order", "matplotlib.svg"],
     "request": ["msgcat-1.6.1.tm"],
     "plotly": ["plotly.json", "plotly.min.js", "package_data\\templates"],
     "pyecharts": ["pyecharts"],
@@ -41,8 +41,10 @@ WHITE_DICT = {
     ],
     "streamlit": ["streamlit\\static"],
     "trame_vtk": ["static_viewer.html"],
+    "python-docx": ["docx\\templates"],
+    "python-pptx": ["pptx\\templates"],
 }
-WHITE_FILE_TYPE = [".pyi", ".py",".pyc", ".pth", "._pth"]
+WHITE_FILE_TYPE = [".pyi", ".py", ".pyc", ".pth", "._pth"]
 
 
 class WinGUI(Tk):
@@ -252,12 +254,6 @@ class MasterGui(WinGUI):
         if selected_path == "":
             return
         selected_path = Path(selected_path)
-        # 为了避免误操作C盘重要文件，本程序不允许在C盘进行操作
-        if "C" in selected_path.drive:
-            messagebox.showinfo(
-                title="警告", message="本程序不支持在C盘路径下进行操作，请重选路径！"
-            )
-            return
         self.tk_input_file.delete(0, "end")
         self.tk_input_file.insert(0, str(selected_path))
 
@@ -278,7 +274,7 @@ class MasterGui(WinGUI):
         file_count = len(file_list)
         for idx, filename in enumerate(file_list):
             if FileRemove.check_file(white_list, filename) and (
-                    not FileRemove.is_file_in_use(filename)
+                not FileRemove.is_file_in_use(filename)
             ):  # 检查白名单和占用
                 relative_path = filename.relative_to(file_path)
                 filename_new = file_dir_new.joinpath(relative_path)
@@ -291,9 +287,15 @@ class MasterGui(WinGUI):
 
         if file_trans_lst.exists():
             os.remove(str(file_trans_lst))
-        with open(file_trans_lst, "w", encoding="utf-8") as file:
-            for temp_file in file_move_lst:
-                file.write(f"{temp_file}\n")
+        try:
+            with open(file_trans_lst, "w", encoding="utf-8") as file:
+                for temp_file in file_move_lst:
+                    file.write(f"{temp_file}\n")
+        except PermissionError:
+            messagebox.showerror(
+                title="错误", message="权限不足，考虑用管理员权限重新运行程序"
+            )
+            return
         messagebox.showinfo("提示", "文件移动结束！")
         self.tk_button_start.config(state=ACTIVE)
 
@@ -305,11 +307,14 @@ class MasterGui(WinGUI):
         file_path = Path(file_path)
         if not file_path.exists():
             return
+            # 为了避免误操作C盘重要文件，本程序不允许在C盘进行操作
         if "C" in file_path.drive:
-            messagebox.showinfo(
-                title="警告", message="本程序不支持在C盘路径进行操作，请重选路径！"
+            result = messagebox.askokcancel(
+                title="警告",
+                message=f"检测到当前需要处理的路径为C盘路径，\n程序可能因为权限不足无法正常工作。请确认是否执行\n待处理文件夹：{file_path}",
             )
-            return
+            if not result:
+                return
         self.tk_progressbar_progress.config(value=0)
 
         file_move_thread = threading.Thread(
@@ -410,12 +415,12 @@ class FileRemove:
         if not file_new.parent.exists():
             try:
                 os.makedirs(file_new.parent)
-            except (PermissionError, FileNotFoundError):
-                pass
+            except (PermissionError, FileNotFoundError) as e:
+                print(e)
         try:
             file_old.rename(file_new)
-        except Exception:
-            pass
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def check_file(white_list: list[str], file: Path) -> bool:

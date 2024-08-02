@@ -28,7 +28,7 @@ WHITE_DICT = {
         "pythonw.exe",
         "VCRUNTIME140_1.dll",
     ],
-    "matplotlib": ["matplotlibrc", ".load-order"],
+    "matplotlib": ["matplotlibrc", ".load-order","matplotlib.svg"],
     "request": ["msgcat-1.6.1.tm"],
     "plotly": ["plotly.json", "plotly.min.js", "package_data\\templates"],
     "pyecharts": ["pyecharts"],

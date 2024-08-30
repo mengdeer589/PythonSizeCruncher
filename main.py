@@ -31,6 +31,7 @@ WHITE_DICT = {
     "matplotlib": ["matplotlibrc", ".load-order", "matplotlib.svg"],
     "request": ["msgcat-1.6.1.tm"],
     "plotly": ["plotly.json", "plotly.min.js", "package_data\\templates"],
+    "kaleido":["kaleido\\executable"],
     "pyecharts": ["pyecharts"],
     "pyqtwebengine": [
         "QtWebEngineProcess.exe",
@@ -43,6 +44,8 @@ WHITE_DICT = {
     "trame_vtk": ["static_viewer.html"],
     "python-docx": ["docx\\templates"],
     "python-pptx": ["pptx\\templates"],
+    "setuptools": ["setuptools\\_vendor"]
+
 }
 WHITE_FILE_TYPE = [".pyi", ".py", ".pyc", ".pth", "._pth"]
 
@@ -274,7 +277,7 @@ class MasterGui(WinGUI):
         file_count = len(file_list)
         for idx, filename in enumerate(file_list):
             if FileRemove.check_file(white_list, filename) and (
-                not FileRemove.is_file_in_use(filename)
+                    not FileRemove.is_file_in_use(filename)
             ):  # 检查白名单和占用
                 relative_path = filename.relative_to(file_path)
                 filename_new = file_dir_new.joinpath(relative_path)

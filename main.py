@@ -10,6 +10,7 @@ from pathlib import Path
 from tkinter import *
 from tkinter import filedialog, messagebox
 from tkinter.ttk import *
+from typing import List
 
 # 记录白名单文件路径
 WHITE_FILE = Path(__file__).parent.joinpath("white_files.json")
@@ -31,7 +32,7 @@ WHITE_DICT = {
     "matplotlib": ["matplotlibrc", ".load-order", "matplotlib.svg"],
     "request": ["msgcat-1.6.1.tm"],
     "plotly": ["plotly.json", "plotly.min.js", "package_data\\templates"],
-    "kaleido":["kaleido\\executable"],
+    "kaleido": ["kaleido\\executable"],
     "pyecharts": ["pyecharts"],
     "pyqtwebengine": [
         "QtWebEngineProcess.exe",
@@ -260,7 +261,7 @@ class MasterGui(WinGUI):
         self.tk_input_file.delete(0, "end")
         self.tk_input_file.insert(0, str(selected_path))
 
-    def work_thread_func(self, white_list: list[str], file_path: Path) -> None:
+    def work_thread_func(self, white_list: List[str], file_path: Path) -> None:
         """
         在额外线程进行文件夹操作
         :param white_list: 包含白名单文件的列表
@@ -365,7 +366,7 @@ class FileRemove:
     """文件移动函数类"""
 
     @staticmethod
-    def get_file_paths(directory: Path, only_binary: bool = True) -> list[Path]:
+    def get_file_paths(directory: Path, only_binary: bool = True) -> List[Path]:
         """
         获取指定路径所有文件名,only_binary设置是否只检测pyd,dll文件
         :param directory: 目标路径
@@ -396,7 +397,7 @@ class FileRemove:
         file_name = str(file_name)
         try:
             # 尝试以读写模式打开文件
-            with open(file_name, "r+", encoding="utf-8") as file:
+            with open(file_name, "r+", encoding="utf-8") as _:
                 # 如果文件成功打开，说明没有被占用
                 return False
         except OSError:
@@ -426,7 +427,7 @@ class FileRemove:
             print(e)
 
     @staticmethod
-    def check_file(white_list: list[str], file: Path) -> bool:
+    def check_file(white_list: List[str], file: Path) -> bool:
         """
         通过检测字符串包含的方法，判断该文件是否在白名单中,或在白名单文件类型中,如果在即返回False
         :param white_list: 白名单文件列表
